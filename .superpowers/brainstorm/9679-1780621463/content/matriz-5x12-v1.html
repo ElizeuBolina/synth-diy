@@ -1,0 +1,70 @@
+<h2>Matriz do teclado: 5 barramentos × 12 notas</h2>
+<p class="subtitle">A ideia é não ligar 44 teclas separadas. A matriz reduz isso para 17 GPIOs: 5 linhas de escala/oitava e 12 linhas cromáticas.</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Opção A: 5 pinos como saídas de varredura</div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:120px repeat(12,1fr);gap:6px;align-items:center;font-family:monospace;font-size:12px">
+        <div></div>
+        <div>C</div><div>C#</div><div>D</div><div>D#</div><div>E</div><div>F</div><div>F#</div><div>G</div><div>G#</div><div>A</div><div>A#</div><div>B</div>
+        <div style="color:#7dd3fc">BUS 1 / parcial</div>
+        <div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div>F</div><div>F#</div><div>G</div><div>G#</div><div>A</div><div>A#</div><div>B</div>
+        <div style="color:#7dd3fc">BUS 2</div>
+        <div>C</div><div>C#</div><div>D</div><div>D#</div><div>E</div><div>F</div><div>F#</div><div>G</div><div>G#</div><div>A</div><div>A#</div><div>B</div>
+        <div style="color:#7dd3fc">BUS 3</div>
+        <div>C</div><div>C#</div><div>D</div><div>D#</div><div>E</div><div>F</div><div>F#</div><div>G</div><div>G#</div><div>A</div><div>A#</div><div>B</div>
+        <div style="color:#7dd3fc">BUS 4</div>
+        <div>C</div><div>C#</div><div>D</div><div>D#</div><div>E</div><div>F</div><div>F#</div><div>G</div><div>G#</div><div>A</div><div>A#</div><div>B</div>
+        <div style="color:#7dd3fc">BUS 5 / final</div>
+        <div>C</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div><div style="opacity:.25">-</div>
+      </div>
+      <p style="margin-top:16px"><strong>Recomendação inicial:</strong> um GPIO ativa um barramento por vez; os 12 GPIOs de notas leem quais contatos fecharam naquele barramento.</p>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Opção B: 12 pinos como saídas de varredura</div>
+    <div class="mockup-body">
+      <p>Também funciona eletricamente em algumas matrizes, mas usa 12 linhas sendo dirigidas e 5 entradas.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Vantagem</h4>
+          <ul><li>Menos entradas para ler.</li></ul>
+        </div>
+        <div class="cons">
+          <h4>Desvantagens</h4>
+          <ul>
+            <li>Mais GPIOs alternando como saída.</li>
+            <li>Mais resistores de proteção se protegermos toda linha dirigida.</li>
+            <li>Fica menos natural com os 5 pinos já representando as faixas do teclado.</li>
+          </ul>
+        </div>
+      </div>
+      <p><strong>Só escolheria esta</strong> se a orientação dos diodos obrigar ou se a leitura ficar invertida demais.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Como uma tecla vira nota</h3>
+  <p>Exemplo: o software ativa BUS 3. Se a entrada da coluna G estiver ativa, então a tecla lida é BUS 3 + G. O mapeamento converte isso para MIDI pela fórmula:</p>
+  <pre style="background:#111827;padding:14px;border-radius:8px;overflow:auto">nota_midi = NOTA_BASE + (indice_bus * 12) + grau_cromatico</pre>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Aprovar direção recomendada</h3>
+      <p>Planejar 5 linhas de varredura e 12 entradas, condicionado ao teste dos diodos com multímetro.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Rever antes de documentar</h3>
+      <p>Discutir outra direção de scan ou outra proteção elétrica antes de salvar na doc.</p>
+    </div>
+  </div>
+</div>

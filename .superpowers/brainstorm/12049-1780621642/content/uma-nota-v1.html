@@ -1,0 +1,57 @@
+<h2>Uma única nota na matriz</h2>
+<p class="subtitle">Exemplo: tecla G no BUS 3. A matriz inteira é só a repetição deste mesmo circuito para cada tecla.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Tecla solta: a entrada não recebe sinal</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace;font-size:18px;line-height:1.8;white-space:pre;color:#e5e7eb">
+Raspberry Pi                         Placa do teclado                         Raspberry Pi
+
+GPIO OUT BUS 3 ──[330R]───────o      tecla aberta      o───|>|──── GPIO IN G
+                              │                       │     diodo
+                              └──── sem contato ──────┘
+
+Resultado: o GPIO IN G fica no estado de repouso pelo pull-up/pull-down.
+O software entende: "G do BUS 3 não está pressionado".
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Tecla pressionada: BUS 3 aparece na entrada G</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace;font-size:18px;line-height:1.8;white-space:pre;color:#e5e7eb">
+Raspberry Pi                         Placa do teclado                         Raspberry Pi
+
+GPIO OUT BUS 3 ──[330R]───────o──── tecla fechada ────o───|>|──── GPIO IN G
+                              │                       │     diodo
+                              └──── agora tem caminho ┘
+
+Resultado: quando o software ativa BUS 3, o GPIO IN G muda de estado.
+O software entende: "G do BUS 3 está pressionado".
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Tradução para nota musical</h3>
+  <p>O software não sabe que existe uma tecla física chamada "G". Ele só enxerga coordenadas:</p>
+  <pre style="background:#111827;padding:14px;border-radius:8px;overflow:auto">BUS 3 ativo + entrada G ativa = tecla (BUS 3, G)</pre>
+  <p>Depois o mapeamento converte isso para uma nota MIDI, por exemplo G3 ou G4, dependendo da nota base escolhida.</p>
+</div>
+
+<div class="section">
+  <h3>Por que precisa varrer?</h3>
+  <p>Porque todas as teclas G compartilham o mesmo fio de nota G. Para saber qual G foi pressionado, a Raspberry testa um BUS por vez:</p>
+  <ol>
+    <li>Ativa BUS 1 e olha se G respondeu.</li>
+    <li>Ativa BUS 2 e olha se G respondeu.</li>
+    <li>Ativa BUS 3 e olha se G respondeu.</li>
+    <li>Se G respondeu só no BUS 3, então é a tecla G daquela faixa.</li>
+  </ol>
+</div>
+
+<div class="section">
+  <h3>O papel do diodo</h3>
+  <p>O diodo deixa o sinal passar em um sentido só. Isso evita que, ao tocar acordes, uma tecla crie caminho falso por outra tecla e gere nota fantasma.</p>
+</div>

@@ -1,0 +1,16 @@
+#cloud-config
+hostname: synth
+manage_etc_hosts: true
+ssh_pwauth: true
+timezone: America/Sao_Paulo
+locale: pt_BR.UTF-8
+users:
+  - name: "synth"
+    gecos: Synth DIY
+    groups: [adm, audio, dialout, gpio, i2c, input, netdev, plugdev, spi, sudo, users, video]
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: "$6$cL6szeh5ytZETzcn$.sbFvM/xKOOpF3R4y4o3YsJ/U2sDUMeBUO3knrigTEvn/JPkkSae8xw3XU4Y.tcixNDId/.18dAo359lGQcyb1"
+    sudo: ALL=(ALL) NOPASSWD:ALL
+packages:
+  - avahi-daemon

@@ -1,0 +1,16 @@
+[Unit]
+Description=Synth DIY keyboard GPIO matrix controller
+After=fluidsynth.service
+Requires=fluidsynth.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/synth
+ExecStart=/opt/synth/keyboard-synth --program 16 run --settle-us 120 --scan-sleep-us 500 --press-debounce-ms 5 --release-debounce-ms 80
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

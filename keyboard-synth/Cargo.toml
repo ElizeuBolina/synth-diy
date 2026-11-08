@@ -1,0 +1,11 @@
+[package]
+name = "keyboard-synth"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+alsa = "0.9"
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+rppal = "0.17"
+signal-hook = "0.3"

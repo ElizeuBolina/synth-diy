@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ligacoes na Raspberry Pi - Synth DIY</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --ink: #17201b;
+      --muted: #5b6860;
+      --line: #d8ded7;
+      --bus: #1b7f72;
+      --note: #3457a6;
+      --sustain: #b65b20;
+      --free: #a8b1aa;
+      --danger: #a53434;
+      --shadow: 0 12px 32px rgba(25, 34, 28, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 48px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      font-size: clamp(2rem, 5vw, 4.6rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 680px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 1.06rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      margin-top: 28px;
+    }
+
+    section {
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      font-size: 1.05rem;
+    }
+
+    .panel-header span {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: right;
+    }
+
+    .pin-map {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 18px;
+    }
+
+    .pin {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 54px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fbfcfa;
+    }
+
+    .pin.used {
+      border-color: color-mix(in srgb, var(--kind) 42%, var(--line));
+      background: color-mix(in srgb, var(--kind) 8%, white);
+    }
+
+    .pin-number {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--kind, var(--free));
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .pin strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 0.88rem;
+    }
+
+    .pin small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
+    .bus {
+      --kind: var(--bus);
+    }
+
+    .note {
+      --kind: var(--note);
+    }
+
+    .sustain {
+      --kind: var(--sustain);
+    }
+
+    .ground {
+      --kind: #56615a;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--kind);
+    }
+
+    .tables {
+      display: grid;
+      gap: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .callouts {
+      display: grid;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 5px solid var(--kind);
+      background: var(--panel);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .danger {
+      --kind: var(--danger);
+    }
+
+    .info {
+      --kind: var(--bus);
+    }
+
+    .accent {
+      --kind: var(--sustain);
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef1ed;
+      color: #28332d;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    @media (max-width: 900px) {
+      header,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .badge {
+        width: fit-content;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        padding-top: 22px;
+      }
+
+      .pin-map {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        display: block;
+      }
+
+      .panel-header span {
+        display: block;
+        margin-top: 4px;
+        text-align: left;
+      }
+
+      table {
+        font-size: 0.86rem;
+      }
+
+      th,
+      td {
+        padding: 9px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Ligacoes na Raspberry Pi</h1>
+        <p class="subtitle">
+          Mapa de fiacao para ligar a matriz de 44 teclas do orgao antigo na Raspberry Pi 3 Model B v1.2.
+          A matriz usa 17 GPIOs: 5 linhas BUS com resistor em serie e 12 entradas de notas cromaticas.
+        </p>
+      </div>
+      <span class="badge">Synth DIY</span>
+    </header>
+
+    <div class="grid">
+      <section class="panel" aria-labelledby="pinagem">
+        <div class="panel-header">
+          <h2 id="pinagem">Mapa visual dos pinos fisicos</h2>
+          <span>Numeracao fisica do header de 40 pinos</span>
+        </div>
+        <div class="pin-map">
+          <div class="pin"><span class="pin-number">1</span><div><strong>3,3 V</strong><small>nao usar no teclado</small></div></div>
+          <div class="pin"><span class="pin-number">2</span><div><strong>5 V</strong><small>nao usar no teclado</small></div></div>
+          <div class="pin used sustain"><span class="pin-number">3</span><div><strong>Octave - GPIO2</strong><small>botao para GND</small></div></div>
+          <div class="pin"><span class="pin-number">4</span><div><strong>5 V</strong><small>nao usar no teclado</small></div></div>
+          <div class="pin used sustain"><span class="pin-number">5</span><div><strong>Reverb - GPIO3</strong><small>botao para GND</small></div></div>
+          <div class="pin ground"><span class="pin-number">6</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin used note"><span class="pin-number">7</span><div><strong>B - GPIO4</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin"><span class="pin-number">8</span><div><strong>GPIO14</strong><small>livre</small></div></div>
+          <div class="pin ground"><span class="pin-number">9</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin"><span class="pin-number">10</span><div><strong>GPIO15</strong><small>livre</small></div></div>
+          <div class="pin used note"><span class="pin-number">11</span><div><strong>E - GPIO17</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin used note"><span class="pin-number">12</span><div><strong>A# - GPIO18</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin used note"><span class="pin-number">13</span><div><strong>F - GPIO27</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin ground"><span class="pin-number">14</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin used note"><span class="pin-number">15</span><div><strong>F# - GPIO22</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin used note"><span class="pin-number">16</span><div><strong>G - GPIO23</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin"><span class="pin-number">17</span><div><strong>3,3 V</strong><small>nao usar no teclado</small></div></div>
+          <div class="pin used note"><span class="pin-number">18</span><div><strong>G# - GPIO24</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin used sustain"><span class="pin-number">19</span><div><strong>Pedal sustain - GPIO10</strong><small>P10 TIP; SLEEVE no GND</small></div></div>
+          <div class="pin used ground"><span class="pin-number">20</span><div><strong>Sustain SLEEVE - GND</strong><small>P10 TIP; SLEEVE no GND</small></div></div>
+          <div class="pin used sustain"><span class="pin-number">21</span><div><strong>Leslie - GPIO9</strong><small>botao para GND</small></div></div>
+          <div class="pin used note"><span class="pin-number">22</span><div><strong>A - GPIO25</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin"><span class="pin-number">23</span><div><strong>GPIO11</strong><small>livre</small></div></div>
+          <div class="pin used sustain"><span class="pin-number">24</span><div><strong>Chorus - GPIO8</strong><small>botao para GND</small></div></div>
+          <div class="pin ground"><span class="pin-number">25</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin used bus"><span class="pin-number">26</span><div><strong>BUS 4 - GPIO7</strong><small>GPIO -> 1 kΩ -> BUS 4</small></div></div>
+          <div class="pin"><span class="pin-number">27</span><div><strong>GPIO0</strong><small>evitar ID EEPROM</small></div></div>
+          <div class="pin"><span class="pin-number">28</span><div><strong>GPIO1</strong><small>evitar ID EEPROM</small></div></div>
+          <div class="pin used bus"><span class="pin-number">29</span><div><strong>BUS 1 - GPIO5</strong><small>GPIO -> 1 kΩ -> BUS 1</small></div></div>
+          <div class="pin ground"><span class="pin-number">30</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin used bus"><span class="pin-number">31</span><div><strong>BUS 2 - GPIO6</strong><small>GPIO -> 1 kΩ -> BUS 2</small></div></div>
+          <div class="pin used note"><span class="pin-number">32</span><div><strong>C - GPIO12</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin used bus"><span class="pin-number">33</span><div><strong>BUS 3 - GPIO13</strong><small>GPIO -> 1 kΩ -> BUS 3</small></div></div>
+          <div class="pin ground"><span class="pin-number">34</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin used sustain"><span class="pin-number">35</span><div><strong>Botao timbre - GPIO19</strong><small>botao momentaneo para GND</small></div></div>
+          <div class="pin used note"><span class="pin-number">36</span><div><strong>C# - GPIO16</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin used bus"><span class="pin-number">37</span><div><strong>BUS 5 - GPIO26</strong><small>GPIO -> 1 kΩ -> BUS 5</small></div></div>
+          <div class="pin used note"><span class="pin-number">38</span><div><strong>D - GPIO20</strong><small>Flat de 12 pinos</small></div></div>
+          <div class="pin ground"><span class="pin-number">39</span><div><strong>GND</strong><small>livre</small></div></div>
+          <div class="pin used note"><span class="pin-number">40</span><div><strong>D# - GPIO21</strong><small>Flat de 12 pinos</small></div></div>
+        </div>
+        <div class="legend">
+          <span><i class="dot bus"></i>BUS / regioes</span>
+          <span><i class="dot note"></i>Notas cromaticas</span>
+          <span><i class="dot sustain"></i>Sustain / controles</span>
+          <span><i class="dot ground"></i>GND</span>
+        </div>
+      </section>
+
+      <section class="tables">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Flat de 5 pinos - BUS / regioes</h2>
+            <span>usar resistor de 1 kΩ em serie</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Funcao</th>
+                <th>GPIO BCM</th>
+                <th>Pino fisico</th>
+                <th>Ligacao</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>BUS 1</td><td>GPIO5</td><td>29</td><td>GPIO -> 1 kΩ -> BUS 1</td></tr>
+              <tr><td>BUS 2</td><td>GPIO6</td><td>31</td><td>GPIO -> 1 kΩ -> BUS 2</td></tr>
+              <tr><td>BUS 3</td><td>GPIO13</td><td>33</td><td>GPIO -> 1 kΩ -> BUS 3</td></tr>
+              <tr><td>BUS 4</td><td>GPIO7</td><td>26</td><td>GPIO -> 1 kΩ -> BUS 4</td></tr>
+              <tr><td>BUS 5</td><td>GPIO26</td><td>37</td><td>GPIO -> 1 kΩ -> BUS 5</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Flat de 12 pinos - notas</h2>
+            <span>grau cromatico C ate B</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nota</th>
+                <th>GPIO BCM</th>
+                <th>Pino fisico</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>C</td><td>GPIO12</td><td>32</td></tr>
+              <tr><td>C#</td><td>GPIO16</td><td>36</td></tr>
+              <tr><td>D</td><td>GPIO20</td><td>38</td></tr>
+              <tr><td>D#</td><td>GPIO21</td><td>40</td></tr>
+              <tr><td>E</td><td>GPIO17</td><td>11</td></tr>
+              <tr><td>F</td><td>GPIO27</td><td>13</td></tr>
+              <tr><td>F#</td><td>GPIO22</td><td>15</td></tr>
+              <tr><td>G</td><td>GPIO23</td><td>16</td></tr>
+              <tr><td>G#</td><td>GPIO24</td><td>18</td></tr>
+              <tr><td>A</td><td>GPIO25</td><td>22</td></tr>
+              <tr><td>A#</td><td>GPIO18</td><td>12</td></tr>
+              <tr><td>B</td><td>GPIO4</td><td>7</td></tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+    </div>
+
+    <section class="callouts" aria-label="observacoes importantes">
+      <div class="callout danger">
+        <strong>Nao ligar 5 V, 3,3 V nem GND ao teclado</strong>
+        Se o teclado for apenas uma matriz passiva de contatos e diodos, ligue somente os 17 fios da matriz:
+        5 BUS + 12 notas. Confirme com multimetro antes de soldar definitivo.
+      </div>
+      <div class="callout info">
+        <strong>Orientacao dos diodos</strong>
+        A direcao da varredura depende da orientacao dos diodos da placa. Isso define se o software usa
+        entradas com <code>pull-up</code> ou <code>pull-down</code>.
+      </div>
+      <div class="callout accent">
+        <strong>Entrada P10 para sustain</strong>
+        Pedal sustain: P10 TIP -> GPIO10 / pino fisico 19. P10 SLEEVE -> GND / pino fisico 20.
+        No software: pedal solto = HIGH, pedal pressionado = LOW usando pull-up interno.
+        Botoes de controle: octave GPIO2/pino 3, reverb GPIO3/pino 5, chorus GPIO8/pino 24, leslie GPIO9/pino 21. Todos fecham para GND.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

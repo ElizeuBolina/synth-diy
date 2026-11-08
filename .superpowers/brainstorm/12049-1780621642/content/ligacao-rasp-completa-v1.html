@@ -1,0 +1,101 @@
+<h2>Ligação completa na Raspberry Pi 3</h2>
+<p class="subtitle">Proposta de pinagem BCM para a primeira montagem: 5 saídas para BUS com resistor em série e 12 entradas para notas.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Visão geral</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace;font-size:17px;line-height:1.7;white-space:pre;color:#e5e7eb">
+FLAT 5 PINOS / BUS                         FLAT 12 PINOS / NOTAS
+
+Pi GPIO5  / pino fisico 29 ──[1k]── BUS 1     C  ── GPIO12 / pino fisico 32
+Pi GPIO6  / pino fisico 31 ──[1k]── BUS 2     C# ── GPIO16 / pino fisico 36
+Pi GPIO13 / pino fisico 33 ──[1k]── BUS 3     D  ── GPIO20 / pino fisico 38
+Pi GPIO19 / pino fisico 35 ──[1k]── BUS 4     D# ── GPIO21 / pino fisico 40
+Pi GPIO26 / pino fisico 37 ──[1k]── BUS 5     E  ── GPIO17 / pino fisico 11
+
+                                                F  ── GPIO27 / pino fisico 13
+                                                F# ── GPIO22 / pino fisico 15
+                                                G  ── GPIO23 / pino fisico 16
+                                                G# ── GPIO24 / pino fisico 18
+                                                A  ── GPIO25 / pino fisico 22
+                                                A# ── GPIO18 / pino fisico 12
+                                                B  ── GPIO4  / pino fisico 7
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Conector 40 pinos da Pi</div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:monospace;font-size:13px">
+        <div>01 3V3</div>     <div>02 5V</div>
+        <div>03 GPIO2</div>   <div>04 5V</div>
+        <div>05 GPIO3</div>   <div>06 GND</div>
+        <div style="color:#86efac">07 GPIO4  -> B</div>    <div>08 GPIO14</div>
+        <div>09 GND</div>     <div>10 GPIO15</div>
+        <div style="color:#86efac">11 GPIO17 -> E</div>    <div style="color:#86efac">12 GPIO18 -> A#</div>
+        <div style="color:#86efac">13 GPIO27 -> F</div>    <div>14 GND</div>
+        <div style="color:#86efac">15 GPIO22 -> F#</div>   <div style="color:#86efac">16 GPIO23 -> G</div>
+        <div>17 3V3</div>     <div style="color:#86efac">18 GPIO24 -> G#</div>
+        <div>19 GPIO10</div>  <div>20 GND</div>
+        <div>21 GPIO9</div>   <div style="color:#86efac">22 GPIO25 -> A</div>
+        <div>23 GPIO11</div>  <div>24 GPIO8</div>
+        <div>25 GND</div>     <div>26 GPIO7</div>
+        <div>27 GPIO0</div>   <div>28 GPIO1</div>
+        <div style="color:#fbbf24">29 GPIO5  -> [1k] -> BUS1</div>  <div>30 GND</div>
+        <div style="color:#fbbf24">31 GPIO6  -> [1k] -> BUS2</div>  <div style="color:#86efac">32 GPIO12 -> C</div>
+        <div style="color:#fbbf24">33 GPIO13 -> [1k] -> BUS3</div>  <div>34 GND</div>
+        <div style="color:#fbbf24">35 GPIO19 -> [1k] -> BUS4</div>  <div style="color:#86efac">36 GPIO16 -> C#</div>
+        <div style="color:#fbbf24">37 GPIO26 -> [1k] -> BUS5</div>  <div style="color:#86efac">38 GPIO20 -> D</div>
+        <div>39 GND</div>     <div style="color:#86efac">40 GPIO21 -> D#</div>
+      </div>
+      <p style="font-size:12px;color:#cbd5e1;margin-top:14px">Amarelo = saidas BUS. Verde = entradas de notas. Evitamos GPIO0/GPIO1.</p>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Detalhe de uma linha BUS</div>
+    <div class="mockup-body">
+      <div style="font-family:monospace;font-size:17px;line-height:1.8;white-space:pre;color:#e5e7eb">
+GPIO5 ──[1k]── BUS 1 ── tecla ── diodo ── NOTA F  ── GPIO27
+                   └── tecla ── diodo ── NOTA F# ── GPIO22
+                   └── tecla ── diodo ── NOTA G  ── GPIO23
+                   └── ... até B
+      </div>
+      <p>O mesmo padrão se repete para BUS 2, BUS 3, BUS 4 e BUS 5.</p>
+      <p><strong>Sem fio de 5V.</strong> O teclado deve ser tratado como matriz passiva. A Raspberry fornece e lê apenas sinais de 3,3 V pelos GPIOs.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Configuração elétrica no software</h3>
+  <p>Depois de medir os diodos, escolhemos uma destas duas lógicas:</p>
+  <div class="options">
+    <div class="option" data-choice="pull-down" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>BUS ativo em HIGH</h3>
+        <p>Entradas com pull-down. Tecla pressionada aparece como HIGH.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="pull-up" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>BUS ativo em LOW</h3>
+        <p>Entradas com pull-up. Tecla pressionada aparece como LOW.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Resumo da montagem</h3>
+  <ol>
+    <li>Soldar 5 resistores de 1k, um em cada fio do flat de 5 pinos.</li>
+    <li>Ligar o outro lado dos resistores aos GPIOs BUS da Raspberry.</li>
+    <li>Ligar os 12 fios do flat de notas diretamente aos GPIOs de entrada.</li>
+    <li>Nao ligar 5V, 3V3 ou GND do teclado, a menos que apareca algum circuito ativo na placa. Para matriz passiva, sao somente os 17 fios.</li>
+  </ol>
+</div>
